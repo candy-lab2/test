@@ -297,7 +297,7 @@ def create_download_link(content: str, filename: str) -> str:
 # Streamlit UI 本体
 # =========================
 def main():
-    st.title("新聞調 広告文 生成")
+    st.title("広告文 生成")
 
     if not HF_TOKEN:
         st.error("環境変数 HUGGINGFACEHUB_API_TOKEN が設定されていません。")
@@ -312,7 +312,7 @@ def main():
 
     if option == "テキスト入力":
         text = st.text_area(
-            "広告文にしたい原稿テキストを入力してください（複数行OK）",
+            "広告文にしたい原稿テキストを入力してください",
             key="input_text",
             height=220,
         )
@@ -365,7 +365,7 @@ def main():
     ad = st.session_state.get("ad", "")
 
     st.text_area(
-        "新聞調 広告文",
+        "広告文",
         value=ad,
         height=200,
         key="ad_box",
