@@ -100,15 +100,12 @@ def smart_cut_to_sentence(text: str, target_chars: int, lookback: int = 40) -> s
 def force_exact_chars(text: str, target_chars: int) -> str:
     text = normalize_output(text)
 
-    # 末尾を句点に寄せる
     if text and not text.endswith("。"):
         text += "。"
 
-    # 長い→自然にカット
     if len(text) > target_chars:
         text = smart_cut_to_sentence(text, target_chars)
 
-    # 短い→定型句で埋める（意味を壊しにくい）
     fillers = ["ぜひ確かめたい。", "今こそ読みたい。", "続きが気になる。", "見逃せない。"]
     i = 0
     while len(text) < target_chars:
@@ -119,12 +116,10 @@ def force_exact_chars(text: str, target_chars: int) -> str:
         if len(add) <= remain:
             text += add
         else:
-            # 残りに収まるように切って句点で終える
             piece = add[: max(0, remain - 1)] + "。"
             text += piece
         i += 1
 
-    # 最終的に長い場合はカット（句点で終える）
     if len(text) > target_chars:
         text = text[: target_chars - 1] + "。"
 
@@ -140,7 +135,7 @@ def finalize_with_llm(
     target_chars: int,
     max_tokens: int,
     temperature: float,
-    rounds: int = 3,  # ★ 10→3（デフォルトを軽く）
+    rounds: int = 3,
 ) -> str:
     ad = normalize_output(ad)
 
@@ -188,13 +183,11 @@ def generate_newspaper_ad_api(
     text: str,
     target_chars: int,
     temperature: float = 0.2,
-    max_adjust_rounds: int = 2,  # ★ 6→2（ここも軽く）
+    max_adjust_rounds: int = 2,
 ) -> str:
     if not HF_TOKEN:
         raise RuntimeError("HUGGINGFACEHUB_API_TOKEN が設定されていません。")
 
-    # 関数内で毎回作るより、外の client を使ってもOKだが、
-    # タイムアウトを付けたいのでここは維持（APIコストには影響ほぼなし）
     client_local = InferenceClient(model=MODEL_ID, token=HF_TOKEN, timeout=60.0)
 
     cleaned = remove_strings(text)
@@ -236,7 +229,6 @@ def generate_newspaper_ad_api(
 
     ad = normalize_output(ad)
 
-    # 調整ループ：長短の補正（回数を絞る）
     for _ in range(max_adjust_rounds):
         length = count_chars(ad)
         if length == target_chars and ad.endswith("。"):
@@ -279,7 +271,6 @@ def generate_newspaper_ad_api(
 
         ad = normalize_output(ad_new)
 
-    # 仕上げ（LLMで少しだけ整える：回数は2回まで）
     ad = finalize_with_llm(
         client=client_local,
         system_prompt=system_prompt,
@@ -291,13 +282,11 @@ def generate_newspaper_ad_api(
     )
     ad = normalize_output(ad)
 
-    # ★ ここがポイント：もうLLMを呼ばず、ローカルで「ちょうど」に確定させる
     ad = force_exact_chars(ad, target_chars)
-
     return ad
 
 # =========================
-# ダウンロードリンク作成（元コード流用）
+# ダウンロードリンク作成
 # =========================
 def create_download_link(content: str, filename: str) -> str:
     b64 = base64.b64encode(content.encode()).decode()
@@ -354,13 +343,8 @@ def main():
         step=1,
     )
 
-    temperature = st.number_input(
-        "temperature（既定 0.2）",
-        min_value=0.0,
-        max_value=2.0,
-        value=0.2,
-        step=0.05,
-    )
+    # ★ temperature はUI表示せず固定
+    temperature = 0.2
 
     if st.button("広告文を生成する"):
         if not text.strip():
@@ -372,7 +356,7 @@ def main():
                         text=text,
                         target_chars=int(target_chars),
                         temperature=float(temperature),
-                        max_adjust_rounds=2,  # ★ 6→2
+                        max_adjust_rounds=2,
                     )
                 except Exception as e:
                     st.error(f"生成に失敗しました: {e}")
