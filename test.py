@@ -12,6 +12,22 @@ client = InferenceClient(
     model=MODEL_ID,
     token=HF_TOKEN
 )
+def require_password() -> None:
+    # すでに認証済みなら通す
+    if st.session_state.get("auth_ok", False):
+        return
+
+    st.title("ログイン")
+
+    pw = st.text_input("パスワード", type="password")
+    if st.button("ログイン"):
+        if pw == st.secrets["app"]["password"]:
+            st.session_state["auth_ok"] = True
+            st.rerun()
+        else:
+            st.error("パスワードが違います。")
+
+    st.stop()
 
 # =========================
 # 前処理（1本目から流用）
@@ -297,6 +313,7 @@ def create_download_link(content: str, filename: str) -> str:
 # Streamlit UI 本体
 # =========================
 def main():
+    require_password()
     st.title("広告文 生成")
 
     if not HF_TOKEN:
