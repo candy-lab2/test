@@ -334,14 +334,12 @@ def main():
                 key="uploaded_text",
                 height=220,
             )
-
-    target_chars = st.number_input(
-        "目標文字数（30〜400、未指定相当は120）",
-        min_value=30,
-        max_value=400,
-        value=120,
-        step=1,
+    target_chars = st.selectbox(
+        "目標文字数を選んでください",
+        options=[60, 80, 100, 120, 140, 160, 200, 240, 300, 400],
+        index=3,  # 120
     )
+
 
     # ★ temperature はUI表示せず固定
     temperature = 0.2
