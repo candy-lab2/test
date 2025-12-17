@@ -385,7 +385,6 @@ def main():
         "広告文",
         value=ad,
         height=200,
-        key="ad_box",
     )
     st.text(f"文字数：{len(ad)}")
 
