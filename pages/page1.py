@@ -337,7 +337,7 @@ def create_download_link(content: str, filename: str):
 # Streamlit UI
 # =========================
 def main():
-    st.title("要約")
+    st.title("要約合格判定だけ反映版（target-3〜targetを合格にする）")
 
     text = st.text_area("広告文にしたい原稿を入力してください", height=260)
 
