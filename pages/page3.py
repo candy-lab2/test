@@ -332,7 +332,7 @@ def create_download_link(content: str, filename: str):
 # Streamlit UI
 # =========================
 def main():
-    st.title("要約")
+    st.title("要約temperature だけ反映版（0.05に下げる）")
 
     text = st.text_area("広告文にしたい原稿を入力してください", height=260)
 
