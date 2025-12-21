@@ -259,7 +259,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
     ad = normalize_output(ad)
     max_tokens_strict = int(target_chars * 2.8) + 220
 
-    max_adjust_rounds = 2
+    max_adjust_rounds = 4
     for _ in range(max_adjust_rounds):
         length = count_chars(ad)
         if length == target_chars and ad.endswith("。"):
