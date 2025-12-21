@@ -262,9 +262,9 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
 
     max_tokens_strict = int(target_chars * 2.8) + 220
 
-    # ── 厳格化：API最大3回の配分 ──
-    # 調整ループ：最大2回（=2回）
-    max_adjust_rounds = 2
+    # ── 厳格化：API最大5回の配分 ──
+    # 調整ループ：最大4回（=4回）
+    max_adjust_rounds = 4 # 2 -> 4
 
     for _ in range(max_adjust_rounds):
         length = count_chars(ad)
