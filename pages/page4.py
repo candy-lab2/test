@@ -216,6 +216,8 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
 
     cleaned = remove_strings(text)
     max_tokens = int(target_chars * 3)
+    #ここに追加
+    long_target = target_chars + 25
 
     # ✅ 追加：合格レンジ
     TOL = 3  # target-3〜target を合格
