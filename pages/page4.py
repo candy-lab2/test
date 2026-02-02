@@ -15,7 +15,7 @@ client = InferenceClient(
 
 
 # =========================
-# ✅ API呼び出し回数の上限（最大5回）
+# API呼び出し回数の上限（最大5回）
 # =========================
 MAX_API_CALLS = 5
 _api_call_count = 0
@@ -58,8 +58,8 @@ def _extract_message_text(choice) -> str:
 
 def _call_chat(client, messages, max_tokens, temperature):
     """
-    ✅ 最大 MAX_API_CALLS 回までしか API を呼ばない
-    ※リトライ時も「呼び出し」としてカウントします
+    最大 MAX_API_CALLS 回までしか API を呼ばない
+    ※リトライ時も「呼び出し」としてカウント
     """
     global _api_call_count
 
@@ -89,7 +89,7 @@ def _call_chat(client, messages, max_tokens, temperature):
     return ""
 
 # =========================
-# 後半だけ再調整（切らない）
+# 後半だけ再調整
 # =========================
 def adjust_tail_with_llm(
     client,
@@ -128,7 +128,7 @@ def adjust_tail_with_llm(
     return head + normalize_output(new_tail)
 
 # ============================================================
-# ✅ ここから「文字数厳格化」部分（追加反映）
+# ここから「文字数厳格化」部分（追加反映）
 # ============================================================
 
 # 最終保険：句読点で自然に切る
@@ -154,7 +154,7 @@ def smart_cut_to_sentence(text: str, target_chars: int, lookback: int = 40) -> s
         head = head[:-1] + "。"
     return head
 
-# 仕上げ：完結・文末「。」・ちょうどN文字（厳格）
+# 仕上げ：完結・文末「。」・ちょうどN文字
 def finalize_with_llm(
     client: InferenceClient,
     system_prompt: str,
@@ -203,11 +203,11 @@ def finalize_with_llm(
     return ad
 
 # ============================================================
-# 広告文生成（精度優先） + ✅ 文字数厳格化（厳格化は最大3回）
+# 広告文生成（精度優先） + 文字数厳格化（厳格化は最大3回）
 # ============================================================
 def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float = 0.2) -> str:
     global _api_call_count
-    _api_call_count = 0  # ✅ 生成ごとにリセット
+    _api_call_count = 0  # 生成ごとにリセット
 
     if not HF_TOKEN:
         raise RuntimeError("HUGGINGFACEHUB_API_TOKEN が設定されていません。")
@@ -219,7 +219,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
     #ここに追加
     long_target = target_chars + 25
 
-    # ✅ 追加：合格レンジ
+    # 追加：合格レンジ
     TOL = 3  # target-3〜target を合格
 
     system_prompt = (
@@ -227,7 +227,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
         "必ず日本語のみで回答し、推論過程や自己コメント、タグ、英語を一切出力してはいけません。"
     )
 
-    # ① 自然さ最優先で生成（元のまま）
+    # ① 自然さ最優先で生成
     ad = _call_chat(
         client,
         [{"role": "user", "content": (
@@ -250,12 +250,12 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
     ad = normalize_output(ad)
     sentences = split_sentences(ad)
 
-    # ✅ ここで合格なら即返す（余計に崩さない）
+    # ここで合格なら即返す（余計に崩さない）
     length = count_chars(ad)
     if (target_chars - TOL) <= length <= target_chars and ad.endswith("。"):
         return ad
 
-    # ② 長すぎる場合のみ最後の1文を再調整（元のまま）
+    # 長すぎる場合のみ最後の1文を再調整
     if len(sentences) >= 2 and len(ad) > target_chars + 10:
         ad = adjust_tail_with_llm(
             client,
@@ -266,19 +266,19 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
         )
         ad = normalize_output(ad)
 
-        # ✅ tail調整後も合格なら即返す
+        # tail調整後も合格なら即返す
         length = count_chars(ad)
         if (target_chars - TOL) <= length <= target_chars and ad.endswith("。"):
             return ad
 
-    # ✅ ③ len()で target_chars 文字ちょうどに寄せる（元のまま）
+    # len()で target_chars 文字ちょうどに寄せる（元のまま）
     max_tokens_strict = int(target_chars * 2.8) + 220
 
     max_adjust_rounds = 4
     for _ in range(max_adjust_rounds):
         length = count_chars(ad)
 
-        # ✅ ちょうど以外に、レンジ合格なら終了
+        # ちょうど以外に、レンジ合格なら終了
         if (target_chars - TOL) <= length <= target_chars and ad.endswith("。"):
             return ad
 
@@ -327,7 +327,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
     )
     ad = normalize_output(ad)
 
-    # ✅ 最終保険（元のまま）
+    # 最終保険（元のまま）
     if count_chars(ad) != target_chars or not ad.endswith("。"):
         ad = smart_cut_to_sentence(ad, target_chars)
 
