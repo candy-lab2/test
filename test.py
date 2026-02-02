@@ -142,7 +142,7 @@ def force_exact_chars(text: str, target_chars: int) -> str:
     return text
 
 # =========================
-# 仕上げ：LLMで整形（回数を絞る）
+# 仕上げ：LLMで整形
 # =========================
 def finalize_with_llm(
     client: InferenceClient,
@@ -193,7 +193,7 @@ def finalize_with_llm(
     return ad
 
 # =========================
-# 本体：広告文生成（CTA入り）
+# 本体：広告文生成
 # =========================
 def generate_newspaper_ad_api(
     text: str,
@@ -358,7 +358,7 @@ def main():
     )
 
 
-    # ★ temperature はUI表示せず固定
+    # temperature はUI表示せず固定
     temperature = 0.2
 
     if st.button("広告文を生成する"):
