@@ -15,7 +15,7 @@ client = InferenceClient(
 
 
 # =========================
-# ✅ API呼び出し回数の上限（最大5回）
+# API呼び出し回数の上限（最大5回）
 # =========================
 MAX_API_CALLS = 5
 _api_call_count = 0
@@ -58,7 +58,7 @@ def _extract_message_text(choice) -> str:
 
 def _call_chat(client, messages, max_tokens, temperature):
     """
-    ✅ 最大 MAX_API_CALLS 回までしか API を呼ばない
+    最大 MAX_API_CALLS 回までしか API を呼ばない
     ※リトライ時も「呼び出し」としてカウントします
     """
     global _api_call_count
@@ -128,7 +128,7 @@ def adjust_tail_with_llm(
     return head + normalize_output(new_tail)
 
 # ============================================================
-# ✅ ここから「文字数厳格化」部分（追加反映）
+# ここから「文字数厳格化」部分（追加反映）
 # ============================================================
 
 # 最終保険：句読点で自然に切る
@@ -203,11 +203,11 @@ def finalize_with_llm(
     return ad
 
 # ============================================================
-# 広告文生成（精度優先） + ✅ 文字数厳格化（厳格化は最大3回）
+# 広告文生成（精度優先） + 文字数厳格化（厳格化は最大3回）
 # ============================================================
 def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float = 0.05) -> str:
     global _api_call_count
-    _api_call_count = 0  # ✅ 生成ごとにリセット
+    _api_call_count = 0  # 生成ごとにリセット
 
     if not HF_TOKEN:
         raise RuntimeError("HUGGINGFACEHUB_API_TOKEN が設定されていません。")
@@ -224,7 +224,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
         "必ず日本語のみで回答し、推論過程や自己コメント、タグ、英語を一切出力してはいけません。"
     )
 
-    # ① 自然さ最優先で生成（元のまま）
+    # 自然さ最優先で生成
     ad = _call_chat(
         client,
         [{"role": "user", "content": (
@@ -247,7 +247,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
     ad = normalize_output(ad)
     sentences = split_sentences(ad)
 
-    # ② 長すぎる場合のみ最後の1文を再調整（元のまま）
+    # 長すぎる場合のみ最後の1文を再調整（元のまま）
     if len(sentences) >= 2 and len(ad) > target_chars + 10:
         ad = adjust_tail_with_llm(
             client,
@@ -257,7 +257,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
             temperature=temperature,
         )
 
-    # ✅ ③ len()で target_chars 文字ちょうどに寄せる（元のまま）
+    # len()で target_chars 文字ちょうどに寄せる（元のまま）
     ad = normalize_output(ad)
     max_tokens_strict = int(target_chars * 2.8) + 220
 
