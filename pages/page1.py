@@ -15,7 +15,7 @@ client = InferenceClient(
 
 
 # =========================
-# ✅ API呼び出し回数の上限（最大5回）
+# API呼び出し回数の上限（最大5回）
 # =========================
 MAX_API_CALLS = 5
 _api_call_count = 0
@@ -58,8 +58,8 @@ def _extract_message_text(choice) -> str:
 
 def _call_chat(client, messages, max_tokens, temperature):
     """
-    ✅ 最大 MAX_API_CALLS 回までしか API を呼ばない
-    ※リトライ時も「呼び出し」としてカウントします
+    最大 MAX_API_CALLS 回までしか API を呼ばない
+    ※リトライ時も「呼び出し」としてカウント
     """
     global _api_call_count
 
@@ -89,7 +89,7 @@ def _call_chat(client, messages, max_tokens, temperature):
     return ""
 
 # =========================
-# 後半だけ再調整（切らない）
+# 後半だけ再調整
 # =========================
 def adjust_tail_with_llm(
     client,
@@ -128,10 +128,10 @@ def adjust_tail_with_llm(
     return head + normalize_output(new_tail)
 
 # ============================================================
-# ✅ ここから「文字数厳格化」部分（追加反映）
+# ここから「文字数厳格化」部分
 # ============================================================
 
-# 最終保険：句読点で自然に切る
+# 句読点で自然に切る
 def smart_cut_to_sentence(text: str, target_chars: int, lookback: int = 40) -> str:
     text = normalize_output(text)
     if len(text) <= target_chars:
@@ -203,11 +203,11 @@ def finalize_with_llm(
     return ad
 
 # ============================================================
-# 広告文生成（精度優先） + ✅ 文字数厳格化（厳格化は最大3回）
+# 広告文生成（精度優先） + 文字数厳格化（厳格化は最大3回）
 # ============================================================
 def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float = 0.2) -> str:
     global _api_call_count
-    _api_call_count = 0  # ✅ 生成ごとにリセット
+    _api_call_count = 0  # 生成ごとにリセット
 
     if not HF_TOKEN:
         raise RuntimeError("HUGGINGFACEHUB_API_TOKEN が設定されていません。")
@@ -257,7 +257,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
             temperature=temperature,
         )
 
-    # ✅ ③ len()で target_chars 文字ちょうどに寄せる（厳格化は最大3回）
+    # len()で target_chars 文字ちょうどに寄せる（厳格化は最大3回）
     ad = normalize_output(ad)
 
     max_tokens_strict = int(target_chars * 2.8) + 220
@@ -305,7 +305,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
             break
         ad = normalize_output(ad_new)
 
-    # finalize：最大1回（=1回） → 厳格化合計 最大3回
+    # finalize：最大1回（=1回） → 最大3回
     ad = finalize_with_llm(
         client=client,
         system_prompt=system_prompt,
@@ -317,7 +317,7 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
     )
     ad = normalize_output(ad)
 
-    # ✅ APIなし最終保険（ズレてたら句読点で調整）
+    # APIなし最終保険（ズレてたら句読点で調整）
     if count_chars(ad) != target_chars or not ad.endswith("。"):
         ad = smart_cut_to_sentence(ad, target_chars)
 
