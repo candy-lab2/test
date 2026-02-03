@@ -57,10 +57,6 @@ def _extract_message_text(choice) -> str:
     return getattr(msg, "content", "")
 
 def _call_chat(client, messages, max_tokens, temperature):
-    """
-    最大 MAX_API_CALLS 回までしか API を呼ばない
-    ※リトライ時も「呼び出し」としてカウントします
-    """
     global _api_call_count
 
     if _api_call_count >= MAX_API_CALLS:
@@ -73,20 +69,31 @@ def _call_chat(client, messages, max_tokens, temperature):
 
             _api_call_count += 1
             resp = client.chat.completions.create(
+                model=MODEL_ID,
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
+                provider="nscale",   # ←モデルページに出てるprovider名（まずこれ）
             )
             return _extract_message_text(resp.choices[0]).strip()
 
         except (ConnectTimeout, ReadTimeout):
             time.sleep(2 ** attempt)
         except HTTPError as e:
-            if getattr(e.response, "status_code", 500) >= 500:
+            status = getattr(e.response, "status_code", 500)
+            # 失敗理由を見える化（Streamlitで確認できる）
+            try:
+                st.write("HTTPError status:", status)
+                st.write("HTTPError body:", getattr(e.response, "text", ""))
+            except Exception:
+                pass
+
+            if status >= 500:
                 time.sleep(2 ** attempt)
             else:
                 raise
     return ""
+
 
 # =========================
 # 後半だけ再調整（切らない）
