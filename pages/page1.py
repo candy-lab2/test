@@ -5,7 +5,7 @@ from httpx import ConnectTimeout, ReadTimeout, HTTPError
 
 API_KEY = st.secrets["huggingface"]["huggingface_APIKey"]
 
-MODEL_ID = "Qwen/Qwen3-4B-Instruct-2507"
+MODEL_ID = "Qwen/Qwen3-VL-8B-Instruct"
 HF_TOKEN = API_KEY
 
 client = InferenceClient(
