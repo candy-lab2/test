@@ -9,11 +9,11 @@ MODEL_ID = "Qwen/Qwen3-4B-Instruct-2507"
 HF_TOKEN = API_KEY
 
 client = InferenceClient(
-    model=MODEL_ID,
-    token=HF_TOKEN,
-    provider="nscale",   # ←ここに移動
+    api_key=HF_TOKEN,
+    provider="nscale",   # ←まずはこれ。ダメなら別provider名に
     timeout=60.0
 )
+
 
 
 
@@ -215,7 +215,12 @@ def generate_newspaper_ad_api(text: str, target_chars: int, temperature: float =
     if not HF_TOKEN:
         raise RuntimeError("HUGGINGFACEHUB_API_TOKEN が設定されていません。")
 
-    client = InferenceClient(model=MODEL_ID, token=HF_TOKEN, timeout=60.0)
+    client = InferenceClient(
+        api_key=HF_TOKEN,
+        provider="nscale",
+        timeout=60.0
+    )
+
 
     cleaned = remove_strings(text)
     max_tokens = int(target_chars * 3)
