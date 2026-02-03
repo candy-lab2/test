@@ -10,8 +10,11 @@ HF_TOKEN = API_KEY
 
 client = InferenceClient(
     model=MODEL_ID,
-    token=HF_TOKEN
+    token=HF_TOKEN,
+    provider="nscale",   # ←ここに移動
+    timeout=60.0
 )
+
 
 
 # =========================
@@ -69,11 +72,10 @@ def _call_chat(client, messages, max_tokens, temperature):
 
             _api_call_count += 1
             resp = client.chat.completions.create(
-                model=MODEL_ID,
+                model=MODEL_ID,          # ←明示（なくても動くことが多い）
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,
-                provider="nscale",   # ←モデルページに出てるprovider名（まずこれ）
             )
             return _extract_message_text(resp.choices[0]).strip()
 
@@ -81,18 +83,12 @@ def _call_chat(client, messages, max_tokens, temperature):
             time.sleep(2 ** attempt)
         except HTTPError as e:
             status = getattr(e.response, "status_code", 500)
-            # 失敗理由を見える化（Streamlitで確認できる）
-            try:
-                st.write("HTTPError status:", status)
-                st.write("HTTPError body:", getattr(e.response, "text", ""))
-            except Exception:
-                pass
-
             if status >= 500:
                 time.sleep(2 ** attempt)
             else:
                 raise
     return ""
+
 
 
 # =========================
